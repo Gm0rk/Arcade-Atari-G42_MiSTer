@@ -1,0 +1,14 @@
+# fx68k -- cycle-exact 68000, Jorge Cwik (https://github.com/ijor/fx68k)
+#
+# Added for this project; upstream has no .qip. Same form as the fx68k.qip in
+# MiSTer's Genesis, MegaCD and Minimig-AGA cores.
+#
+# fx68k.sv must come first: it declares the compilation-unit parameters and
+# structs that fx68kAlu.sv and uaddrPla.sv use.
+#
+# microrom.mem and nanorom.mem (the 68000 microcode and nanocode) are not
+# listed: they are data, read by $readmemb("microrom.mem") and
+# $readmemb("nanorom.mem") in fx68k.sv, and must stay in this folder beside it.
+set_global_assignment -name SYSTEMVERILOG_FILE [file join $::quartus(qip_path) fx68k.sv ]
+set_global_assignment -name SYSTEMVERILOG_FILE [file join $::quartus(qip_path) fx68kAlu.sv ]
+set_global_assignment -name SYSTEMVERILOG_FILE [file join $::quartus(qip_path) uaddrPla.sv ]

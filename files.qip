@@ -1,0 +1,109 @@
+# ===========================================================================
+#  files.qip -- Atari G42 for MiSTer
+#
+#  Sourced by Arcade-Atari-G42.qsf, not added as a QIP_FILE, so every path is
+#  relative to the project root.
+#
+#  rtl/ is organised by section of the Atari G42 board:
+#
+#      cpu/        SLOOP bank controller, 68000 address decode
+#      board/      main board: clock enables, work RAM, EEPROM, ADC0809,
+#                  Road Riot controls, watchdog
+#      asic65/     ASIC65 math coprocessor (TMS32010 core and host latches)
+#      video/      raster timing, playfield, alphanumerics, scroll, mixer,
+#                  palette
+#      video/mob/  motion objects: the RLE growth renderer
+#      jsa3/       the JSA III sound board (a separate PCB)
+#      mem/        FPGA side only: ROM loader, SDRAM controller and arbiter,
+#                  block RAM modules (g42_dpram, g42_tdpram)
+#      debug/      the on-screen diagnostic overlay
+#      crt/        rmonic79's CRT Adjust
+#
+#  Third-party cores (fx68k, T65, jt51, jt6295) are under rtl/, each in its
+#  own folder.
+# ===========================================================================
+
+# --- Timing constraints ----------------------------------------------------
+set_global_assignment -name SDC_FILE Arcade-Atari-G42.sdc
+
+# --- Shared definitions: analysed before anything that imports them ----------
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/g42_pkg.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/video/mob/g42_rle_pkg.sv
+
+# --- CPU section ----------------------------------------------------------------
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/cpu/g42_addr_decode.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/cpu/g42_sloop.sv
+
+# --- Main board -------------------------------------------------------------------
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/board/g42_adc0809.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/board/g42_ce.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/board/g42_controls.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/board/g42_eeprom.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/board/g42_mainram.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/board/g42_top.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/board/g42_watchdog.sv
+
+# --- ASIC65 ------------------------------------------------------------------------
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/asic65/tms32010.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/asic65/g42_asic65.sv
+
+# --- Video ---------------------------------------------------------------------------
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/video/g42_alpha.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/video/g42_mixer.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/video/g42_palette.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/video/g42_playfield.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/video/g42_scroll.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/video/g42_video.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/video/g42_video_timing.sv
+
+# --- Motion objects ----------------------------------------------------------------
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/video/mob/g42_rle.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/video/mob/g42_rle_checksum.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/video/mob/g42_rle_fb.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/video/mob/g42_rle_objram.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/video/mob/g42_rle_prescan.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/video/mob/g42_rle_render.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/video/mob/g42_rle_scaler.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/video/mob/g42_rle_sort.sv
+
+# --- JSA III sound board -------------------------------------------------------------
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/jsa3/g42_sound_comm.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/jsa3/g42_jsa3.sv
+
+# --- Memory subsystem (FPGA side; no counterpart on the real board) ------------------
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/mem/g42_dpram.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/mem/g42_dpram_d2k.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/mem/g42_tdpram.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/mem/g42_rom_loader.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/mem/g42_sdram_arb.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/mem/g42_sdram_selftest.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/mem/sdram.sv
+
+# --- Diagnostic overlay ------------------------------------------------------------------
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/debug/g42_dbg_text.sv
+
+# --- CRT Adjust (rmonic79/MiSTer-CRT-Adjust, GPL-3.0) ------------------------------------
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/crt/crt_adjust.sv
+
+# --- The game system and the framework glue ------------------------------------------------
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/g42_core.sv
+set_global_assignment -name SYSTEMVERILOG_FILE Arcade-Atari-G42.sv
+
+# --- Third-party cores ----------------------------------------------------------------------
+# fx68k -- 68000, Jorge Cwik. Its microcode (microrom.mem, nanorom.mem) is
+# read from rtl/fx68k/, beside fx68k.sv.
+set_global_assignment -name QIP_FILE rtl/fx68k/fx68k.qip
+
+# T65 -- 6502 for the JSA III, Daniel Wallner. VHDL; T65_Pack.vhd is the
+# package the others use and must be analysed first.
+set_global_assignment -name VHDL_FILE rtl/t65/T65_Pack.vhd
+set_global_assignment -name VHDL_FILE rtl/t65/T65_ALU.vhd
+set_global_assignment -name VHDL_FILE rtl/t65/T65_MCode.vhd
+set_global_assignment -name VHDL_FILE rtl/t65/T65.vhd
+
+# jt51 -- YM2151, and jt6295 -- OKI6295, both Jose Tejada
+set_global_assignment -name QIP_FILE rtl/jt51/hdl/jt51.qip
+set_global_assignment -name QIP_FILE rtl/jt6295/hdl/jt6295.qip
+
+# --- PLL (Quartus IP) ----------------------------------------------------------------------
+set_global_assignment -name QIP_FILE rtl/pll.qip
