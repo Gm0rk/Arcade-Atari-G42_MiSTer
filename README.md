@@ -5,12 +5,15 @@ hardware, the board under **Road Riot 4WD**, **Guardians of the 'Hood** and
 **Danger Express**, written for the [MiSTer](https://github.com/MiSTer-devel)
 platform.
 
+**All three games are playable on a DE10-Nano, with sound.** See
+[Games](#games).
+
 > **This core was made with AI.** The RTL, testbenches, reference models and
 > documentation were written with an AI assistant (Claude, by Anthropic),
 > working from MAME's source and the games' own test screens. Every block was
-> checked in simulation against a MAME-derived reference, and the whole core
-> was run in a full-system simulation against MAME. It has **not yet been run
-> on a DE10-Nano**. This is disclosed so you can decide whether to use it.
+> checked in simulation against a MAME-derived reference, the whole core was
+> run in a full-system simulation against MAME, and it was then tested on a
+> DE10-Nano. This is disclosed so you can decide whether to use it.
 
 ---
 
@@ -18,9 +21,9 @@ platform.
 
 | Game | Year | Players | ROM sets | Status |
 |---|---|---|---|---|
-| Road Riot 4WD | 1991 | 1 | roadriot (04 Dec 1991, conversion kit); roadriota (13 Nov 1991, conversion kit); roadriotb (04 Jun 1991, dedicated twin) | **Runs in simulation** (roadriot): start-up tests, title, attract race, coins and start match MAME; 20 of 22 compared frames pixel-identical. Not yet run on hardware. The two older sets are checked as MRAs only. |
-| Guardians of the 'Hood | 1992 | 3 | guardian | **Runs in simulation**: attract, title and player select after a coin match MAME; 9 of 15 compared frames pixel-identical, the rest the same screens 2–5 frames apart. Not yet run on hardware. |
-| Danger Express | 1992 (prototype) | 2 | dangerex | **Runs in simulation**: attract, title, coin and jump match MAME; 16 of 19 compared frames pixel-identical, the rest one frame apart. Not yet run on hardware. |
+| Road Riot 4WD | 1991 | 1 | roadriot (04 Dec 1991, conversion kit); roadriota (13 Nov 1991, conversion kit); roadriotb (04 Jun 1991, dedicated twin) | **Playable on hardware, with sound** (roadriot). In simulation it matches MAME frame for frame: 20 of 22 compared frames pixel-identical. The two older sets are not yet tested on hardware. |
+| Guardians of the 'Hood | 1992 | 3 | guardian | **Playable on hardware, with sound.** In simulation 9 of 15 compared frames are pixel-identical to MAME, the rest the same screens 2–5 frames apart. |
+| Danger Express | 1992 (prototype) | 2 | dangerex | **Playable on hardware, with sound.** In simulation 16 of 19 compared frames are pixel-identical to MAME, the rest one frame apart. |
 
 All five sets are named as in MAME 0.264 and load from merged, split or
 non-merged ROM sets.
@@ -28,21 +31,22 @@ non-merged ROM sets.
 ## Progress
 
 ```
-MiSTer integration     ███████████████░░░░░   75%
-ROM loading (.mra)     ██████████████████░░   90%
-CPU (68000 + SLOOP)    ██████████████████░░   90%
-ASIC65 coprocessor     █████████████████░░░   85%
-Memory subsystem       ███████████████░░░░░   75%
-Video                  █████████████████░░░   85%
-Sound (JSA III)        █████████████████░░░   85%
-I/O and controls       ████████████████░░░░   80%
+MiSTer integration     ███████████████████░   95%
+ROM loading (.mra)     ███████████████████░   95%
+CPU (68000 + SLOOP)    ████████████████████  100%
+ASIC65 coprocessor     ███████████████████░   95%
+Memory subsystem       ████████████████████  100%
+Video                  ██████████████████░░   90%
+Sound (JSA III)        ██████████████████░░   90%
+I/O and controls       █████████████████░░░   85%
                        ────────────────────
-Project                █████████████████░░░   83%
+Project                ███████████████████░   94%
 ```
 
-Everything is implemented and matches MAME in simulation; nothing is yet
-confirmed on a DE10-Nano, and the Quartus build is still being brought up
-(block RAM is nearly full).
+All three games are playable on a DE10-Nano with sound. Still to be
+checked on hardware: Road Riot's two older sets, the third Guardians player,
+Road Riot's wheel and pedal from an analog stick, CRT Adjust, and EEPROM
+settings saved across a reload.
 
 ## The hardware
 
