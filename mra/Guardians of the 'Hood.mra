@@ -6,7 +6,7 @@
     <year>1992</year>
     <manufacturer>Atari Games</manufacturer>
     <category>Fighter</category>
-    <rbf>Atari-G42</rbf>
+    <rbf>Arcade-Atari-G42</rbf>
     <rotation>horizontal</rotation>
     <players>3</players>
     <num_buttons>5</num_buttons>
