@@ -95,7 +95,8 @@ module g42_core
 	output logic signed [15:0] audio,
 
 	// ---- Status --------------------------------------------------------------------------
-	output logic        led
+	output logic        led,
+	output logic        game_rr              // the MRA loaded Road Riot (OSD: Controls page)
 );
 
 	//========================================================================
@@ -223,6 +224,9 @@ module g42_core
 
 	wire [7:0] game_id = cfg.game_id;
 	wire       is_rr   = (game_id == GAME_ROADRIOT);
+
+	// The OSD shows its Controls page (wheel sensitivity) only for Road Riot.
+	assign game_rr = is_rr;
 	wire       is_gh   = (game_id == GAME_GUARDIAN);
 
 	//========================================================================
