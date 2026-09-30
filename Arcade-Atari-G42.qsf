@@ -1,6 +1,10 @@
 # --------------------------------------------------------------------------
 #
-#  Atari G42 for MiSTer -- Quartus settings
+#  Atari G42 for MiSTer -- Quartus settings, release build
+#
+#  Builds output_files/Arcade-Atari-G42.rbf, without the OSD's Debug page.
+#  Arcade-Atari-G42_debug.qsf is the debug build: the same settings plus the
+#  Verilog macro G42_DEBUG; keep the two in step.
 #
 #  Do not add files through the Quartus IDE: it rewrites this file. Add
 #  sources to files.qip.
