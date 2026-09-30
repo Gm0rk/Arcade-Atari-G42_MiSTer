@@ -51,15 +51,32 @@ module emu
 	//========================================================================
 	//  OSD
 	//========================================================================
+	// Two builds share this file:
+	//   Arcade-Atari-G42        release: the video options, CRT Adjust and
+	//                           the Service Menu on the main page, and a
+	//                           Controls page for Road Riot only
+	//   Arcade-Atari-G42_debug  the same plus a Debug page; its .qsf defines
+	//                           the Verilog macro G42_DEBUG
+	//
+	// Hidden entries (status_menumask, the H<n> prefixes):
+	//   H1  CRT H-Size, H-Position, V-Shift: while CRT Adjust is off
+	//   H2  the Controls page: unless the loaded game is Road Riot (its
+	//       wheel sensitivity is the only control option). The game comes
+	//       from the MRA's configuration bytes, so the page appears once a
+	//       Road Riot MRA has loaded.
+	//
 	// Status bits:
 	//   0        reset                    23       Service Menu
-	//   4:2      scandoubler fx           24       diagnostic overlay
+	//   4:2      scandoubler fx           24       diagnostic overlay (debug)
 	//   7:5      scale                    101      CRT Adjust
 	//   10       68000 clock (debug)      100:96   CRT H-Size
 	//   11       watchdog (debug)         85:79    CRT H-Position
 	//   13:12    wheel sensitivity        78:74    CRT V-Shift
 	//   16:14    layers off (debug)       122:121  aspect ratio
 	//   20:17    SDRAM capture (debug)
+	// The bits keep their places in both builds, so a game's saved settings
+	// read the same in either; the release build ignores the debug ones
+	// (dstatus below).
 	// build_id.v provides `BUILD_DATE; sys/build_id.tcl writes it before
 	// every compile.
 	//------------------------------------------------------------------------
@@ -67,45 +84,49 @@ module emu
 	localparam CONF_STR = {
 		"Atari-G42;;",
 		"-;",
-		"P1,Video;",
-		"P1-;",
-		"P1O[122:121],Aspect ratio,Original,Full Screen,[ARC1],[ARC2];",
-		"P1O[4:2],Scandoubler Fx,None,HQ2x,CRT 25%,CRT 50%,CRT 75%;",
-		"P1O[7:5],Scale,Normal,V-Integer,Narrower HV-Integer,Wider HV-Integer;",
-		"P1-;",
+		"O[122:121],Aspect ratio,Original,Full Screen,[ARC1],[ARC2];",
+		"O[4:2],Scandoubler Fx,None,HQ2x,CRT 25%,CRT 50%,CRT 75%;",
+		"O[7:5],Scale,Normal,V-Integer,Narrower HV-Integer,Wider HV-Integer;",
+		"-;",
 		// CRT Adjust (analog 15 kHz output). H1 hides the amounts while off.
-		"P1O[101],CRT Adjust,Off,On;",
-		"H1P1O[100:96],CRT H-Size,0,+1,+2,+3,+4,+5,+6,+7,+8,+9,+10,+11,+12,+13,+14,+15,-16,-15,-14,-13,-12,-11,-10,-9,-8,-7,-6,-5,-4,-3,-2,-1;",
-		"H1P1O[85:79],CRT H-Position,0,+1,+2,+3,+4,+5,+6,+7,+8,+9,+10,+11,+12,+13,+14,+15,+16,+17,+18,+19,+20,+21,+22,+23,+24,+25,+26,+27,+28,+29,+30,+31,+32,-32,-31,-30,-29,-28,-27,-26,-25,-24,-23,-22,-21,-20,-19,-18,-17,-16,-15,-14,-13,-12,-11,-10,-9,-8,-7,-6,-5,-4,-3,-2,-1;",
-		"H1P1O[78:74],CRT V-Shift,0,+1,+2,+3,+4,+5,+6,+7,+8,+9,+10,+11,+12,+13,+14,+15,-16,-15,-14,-13,-12,-11,-10,-9,-8,-7,-6,-5,-4,-3,-2,-1;",
-		"P2,Controls;",
-		"P2-;",
-		// Road Riot's wheel from an analog stick. Medium (100%) is first so
-		// it is the default.
-		"P2O[13:12],Wheel sensitivity,Medium,High,Low;",
-		"P3,Debug;",
-		"P3-;",
-		"P3O[24],Diagnostic overlay,Off,On;",
-		"P3O[11],Watchdog,Enabled,Disabled;",
-		"P3O[10],68000 clock,14.318MHz,7.159MHz;",
-		"P3-;",
-		"P3O[14],Motion objects,On,Off;",
-		"P3O[15],Playfield,On,Off;",
-		"P3O[16],Alphanumerics,On,Off;",
-		"P3-;",
-		"P3O[20],SDRAM capture,Auto (self-test),Manual;",
-		"P3O[18:17],Manual read phase,t8,t9,t10,t7;",
-		"P3O[19],Manual sample edge,Falling,Rising;",
+		"O[101],CRT Adjust,Off,On;",
+		"H1O[100:96],CRT H-Size,0,+1,+2,+3,+4,+5,+6,+7,+8,+9,+10,+11,+12,+13,+14,+15,-16,-15,-14,-13,-12,-11,-10,-9,-8,-7,-6,-5,-4,-3,-2,-1;",
+		"H1O[85:79],CRT H-Position,0,+1,+2,+3,+4,+5,+6,+7,+8,+9,+10,+11,+12,+13,+14,+15,+16,+17,+18,+19,+20,+21,+22,+23,+24,+25,+26,+27,+28,+29,+30,+31,+32,-32,-31,-30,-29,-28,-27,-26,-25,-24,-23,-22,-21,-20,-19,-18,-17,-16,-15,-14,-13,-12,-11,-10,-9,-8,-7,-6,-5,-4,-3,-2,-1;",
+		"H1O[78:74],CRT V-Shift,0,+1,+2,+3,+4,+5,+6,+7,+8,+9,+10,+11,+12,+13,+14,+15,-16,-15,-14,-13,-12,-11,-10,-9,-8,-7,-6,-5,-4,-3,-2,-1;",
 		"-;",
 		// The game's own test menu: set On, then reset.
 		"O[23],Service Menu,Off,On;",
+		// Road Riot's wheel from an analog stick. Medium (100%) is first so
+		// it is the default.
+		"H2P1,Controls;",
+		"P1-;",
+		"P1O[13:12],Wheel sensitivity,Medium,High,Low;",
+`ifdef G42_DEBUG
+		"P2,Debug;",
+		"P2-;",
+		"P2O[24],Diagnostic overlay,Off,On;",
+		"P2O[11],Watchdog,Enabled,Disabled;",
+		"P2O[10],68000 clock,14.318MHz,7.159MHz;",
+		"P2-;",
+		"P2O[14],Motion objects,On,Off;",
+		"P2O[15],Playfield,On,Off;",
+		"P2O[16],Alphanumerics,On,Off;",
+		"P2-;",
+		"P2O[20],SDRAM capture,Auto (self-test),Manual;",
+		"P2O[18:17],Manual read phase,t8,t9,t10,t7;",
+		"P2O[19],Manual sample edge,Falling,Rising;",
+`endif
 		"-;",
 		"T[0],Reset;",
 		"R[0],Reset and close OSD;",
 		// Overridden by each MRA's <buttons>; Road Riot's list for a bare .rbf
 		"J1,Left Trigger,Right Trigger,Start,Coin,Pedal;",
 		"jn,A,B,Start,Select,R;",
+`ifdef G42_DEBUG
+		"V,v",`BUILD_DATE,"-debug"
+`else
 		"V,v",`BUILD_DATE
+`endif
 	};
 
 	wire         forced_scandoubler;
@@ -125,6 +146,8 @@ module emu
 	wire [15:0]  joystick_l_analog_0, joystick_r_analog_0;
 	wire  [7:0]  paddle_0;
 
+	wire         game_rr;                // from g42_core: Road Riot is loaded (H2)
+
 	hps_io #(.CONF_STR(CONF_STR)) hps_io
 	(
 		.clk_sys             (clk_sys),
@@ -139,7 +162,7 @@ module emu
 
 		.buttons             (buttons),
 		.status              (status),
-		.status_menumask     ({14'd0, ~status[101], 1'b0}),
+		.status_menumask     ({13'd0, ~game_rr, ~status[101], 1'b0}),
 
 		.ioctl_download      (ioctl_download),
 		.ioctl_upload        (ioctl_upload),
@@ -229,6 +252,16 @@ module emu
 	wire signed [15:0] audio;
 	wire        led;
 
+	// Debug options: the status bits in the debug build; zero, which is every
+	// option's default, in the release build. A setting left over from the
+	// debug build (the two share each game's saved settings) then has no
+	// effect, and the overlay's logic is optimised away.
+`ifdef G42_DEBUG
+	wire [127:0] dstatus = status;
+`else
+	wire [127:0] dstatus = 128'd0;
+`endif
+
 	g42_core #(.BUILD_DATE(`BUILD_DATE)) u_core
 	(
 		.clk                 (clk_sys),
@@ -236,14 +269,14 @@ module emu
 		.reset_in            (reset_in),
 
 		.service             (status[23]),
-		.cpu_div2            (status[10]),
-		.disable_wd          (status[11]),
+		.cpu_div2            (dstatus[10]),
+		.disable_wd          (dstatus[11]),
 		.sensitivity         (status[13:12]),
-		.layer_off           (status[16:14]),
+		.layer_off           (dstatus[16:14]),
 		// {rd_half, rd_phase}: "Falling" (0) samples half a clock early
-		.cap_manual          ({~status[19], status[18:17]}),
-		.cap_auto            (~status[20]),
-		.dbg_page            ({1'b0, status[24]}),
+		.cap_manual          ({~dstatus[19], dstatus[18:17]}),
+		.cap_auto            (~dstatus[20]),
+		.dbg_page            ({1'b0, dstatus[24]}),
 
 		.ioctl_download      (ioctl_download),
 		.ioctl_upload        (ioctl_upload),
@@ -280,7 +313,8 @@ module emu
 		.vid_vsync           (vid_vsync),
 
 		.audio               (audio),
-		.led                 (led)
+		.led                 (led),
+		.game_rr             (game_rr)
 	);
 
 	//========================================================================
