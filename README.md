@@ -21,9 +21,9 @@ platform.
 
 | Game | Year | Players | ROM sets | Status |
 |---|---|---|---|---|
-| Road Riot 4WD | 1991 | 1 | roadriot (04 Dec 1991, conversion kit); roadriota (13 Nov 1991, conversion kit); roadriotb (04 Jun 1991, dedicated twin) | **Playable on hardware, with sound** (roadriot). In simulation it matches MAME frame for frame: 20 of 22 compared frames pixel-identical. The two older sets are not yet tested on hardware. |
-| Guardians of the 'Hood | 1992 | 3 | guardian | **Playable on hardware, with sound.** In simulation 9 of 15 compared frames are pixel-identical to MAME, the rest the same screens 2–5 frames apart. |
-| Danger Express | 1992 (prototype) | 2 | dangerex | **Playable on hardware, with sound.** In simulation 16 of 19 compared frames are pixel-identical to MAME, the rest one frame apart. |
+| Road Riot 4WD | 1991 | 1 | roadriot (04 Dec 1991, conversion kit); roadriota (13 Nov 1991, conversion kit); roadriotb (04 Jun 1991, dedicated twin) | **Playable on hardware, with sound** (roadriot). |
+| Guardians of the 'Hood | 1992 | 3 | guardian | **Playable on hardware, with sound.** |
+| Danger Express | 1992 (prototype) | 2 | dangerex | **Playable on hardware, with sound.** |
 
 All five sets are named as in MAME 0.264 and load from merged, split or
 non-merged ROM sets.
@@ -88,6 +88,11 @@ checks the SDRAM and indexes the motion-object ROM.
 To build the core, open `Arcade-Atari-G42.qpf` in Quartus Prime 17.0 Lite and
 compile; the result is `output_files/Arcade-Atari-G42.rbf`.
 
+For diagnosis there is a debug build: open `Arcade-Atari-G42_debug.qpf`
+instead, which builds `output_files/Arcade-Atari-G42_debug.rbf`, the same core
+with the OSD's **Debug** page added. The MRAs start either build, so keep only
+one of them in `_Arcade/cores`: with both there, MiSTer picks the debug build.
+
 ### Controls
 
 **Road Riot 4WD**: the **left analog stick** is the steering wheel (the d-pad
@@ -109,18 +114,18 @@ then turn it off and reset to play. They are kept in the game's EEPROM,
 which the core saves to the SD card. Road Riot's wheel and pedal calibration
 is in its switch test.
 
-The OSD has:
+The OSD's main page has:
 
 * **Aspect ratio**, **Scandoubler Fx** and **Scale**: MiSTer's standard
   options.
 * **[CRT Adjust](https://github.com/rmonic79/MiSTer-CRT-Adjust)**: the
   picture's width and position on a 15 kHz CRT (H-Size, H-Position,
-  V-Shift). It switches itself off while a Scandoubler Fx option is on, and
-  the HDMI picture follows the adjustment too.
+  V-Shift, shown while it is on). It switches itself off while a Scandoubler
+  Fx option is on, and the HDMI picture follows the adjustment too.
 * **Service Menu**: the game's own test menu, from the next reset.
-* **Controls** (Road Riot only): wheel sensitivity for an analog stick.
-* **Debug**: a diagnostic overlay, layer switches and SDRAM timing options,
-  for diagnosis only.
+* **Controls** page, Road Riot only: wheel sensitivity for an analog stick.
+* **Debug** page, debug build only: a diagnostic overlay, the watchdog, half
+  CPU speed, layer switches and SDRAM timing options.
 
 ---
 
@@ -155,10 +160,8 @@ self-test, clock scheme and overlay.
 
 ## License
 
-The core's own RTL is released under the GNU General Public License v2.0 or
-later (`LICENSE`), like the MiSTer framework it builds on. `rtl/crt/` (CRT
-Adjust) is GPL-3.0 (`rtl/crt/LICENSE`); a built core that includes it is
-therefore distributed under GPL-3.0. `sys/`, fx68k, T65, JT51 and JT6295
-keep their own licences and authorship.
+The core is released under the GNU General Public License v3.0 (`LICENSE`).
+CRT Adjust in `rtl/crt/` is GPL-3.0 as well (`rtl/crt/LICENSE`). `sys/`,
+fx68k, T65, JT51 and JT6295 keep their own licences and authorship.
 
 No ROM data is included or distributed.
