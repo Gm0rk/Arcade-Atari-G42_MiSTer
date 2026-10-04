@@ -17,21 +17,43 @@ package g42_pkg;
 	// Raster timing
 	//------------------------------------------------------------------------
 	// MAME set_raw(14.318181 MHz / 2, 456, 0, 336, 262, 0, 240): 7.159 MHz dot
-	// clock, 15.700 kHz line, 59.923 Hz frame. The totals are published specs;
-	// the porch/sync split of the blanking is chosen for a 15 kHz CRT (the
-	// board's SOS chip is not documented). Same figures as Atari G1.
+	// clock (139.7 ns), 15.700 kHz line, 59.923 Hz frame. The totals are
+	// published specs. Where the sync sits inside the blanking is not: the
+	// board's SOS chip is undocumented, and an arcade monitor is centred with
+	// its own H/V position controls anyway. So the sync is placed as the
+	// "CRT Adjust and Auto-Width" handoff (Arcade-ITech8's it8_sync_center)
+	// places it, the broadcast placement (SMPTE 170M) a TV or PVM on the
+	// analog output is set up for:
+	//
+	//   Horizontal: the HSync leading edge 35.75 us before the middle of the
+	//   picture (4.7 us sync + 4.7 us back porch + half of a 52.7 us picture),
+	//   HSync 4.75 us wide. In 7.159 MHz dots: middle 256 dots after the edge
+	//   (35.76 us, a twentieth of a dot off), sync 34 dots. The 336-dot picture
+	//   (46.9 us) then has 32 dots front porch, 34 sync and 54 back porch. The
+	//   handoff's sync module measures the picture to find the middle; here
+	//   the raster is fixed, so the split is the result. (The G1 split,
+	//   16/36/68, put the picture 16 dots, 2.2 us, right of centre.)
+	//
+	//   Vertical: the VSync leading edge 138 lines before the middle of the
+	//   active lines (3 sync + 15 back porch + 120), VSync 3 lines, its edges
+	//   on HSync leading edges (see g42_video_timing). Here: 4 front, 3 sync,
+	//   15 back. (The G1 split, 6/3/13, sat 2 lines high.)
+	//
+	// Only VGA_HS/VGA_VS move. Game timing (VBLANK at line 240, the IRQ, the
+	// MO erase), DE, HDMI and the OSD do not depend on the split. CRT Adjust
+	// (OSD) works outward from this centre; sim/timing measures both.
 	//------------------------------------------------------------------------
 	localparam int H_TOTAL   = 456;
 	localparam int H_VISIBLE = 336;
-	localparam int H_FRONT   = 16;
-	localparam int H_SYNC    = 36;
-	localparam int H_BACK    = H_TOTAL - H_VISIBLE - H_FRONT - H_SYNC;   // 68
+	localparam int H_FRONT   = 32;
+	localparam int H_SYNC    = 34;
+	localparam int H_BACK    = H_TOTAL - H_VISIBLE - H_FRONT - H_SYNC;   // 54
 
 	localparam int V_TOTAL   = 262;
 	localparam int V_VISIBLE = 240;
-	localparam int V_FRONT   = 6;
+	localparam int V_FRONT   = 4;
 	localparam int V_SYNC    = 3;
-	localparam int V_BACK    = V_TOTAL - V_VISIBLE - V_FRONT - V_SYNC;   // 13
+	localparam int V_BACK    = V_TOTAL - V_VISIBLE - V_FRONT - V_SYNC;   // 15
 
 	localparam int HCNT_W    = 9;
 	localparam int VCNT_W    = 9;
