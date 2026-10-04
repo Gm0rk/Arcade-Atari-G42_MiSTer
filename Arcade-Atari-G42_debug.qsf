@@ -5,8 +5,10 @@
 #  Open Arcade-Atari-G42_debug.qpf to build output_files/
 #  Arcade-Atari-G42_debug.rbf: the release core plus the OSD's Debug page
 #  (diagnostic overlay, watchdog, 68000 clock, layer switches, SDRAM capture
-#  settings). The only difference from Arcade-Atari-G42.qsf is the Verilog
-#  macro G42_DEBUG at the end; keep every other setting the same in both.
+#  settings). It differs from Arcade-Atari-G42.qsf only in the Verilog macro
+#  G42_DEBUG at the end and in leaving out the release script
+#  (release_rbf.tcl): the debug core stays in output_files. Keep every other
+#  setting the same in both.
 #
 #  Do not add files through the Quartus IDE: it rewrites this file. Add
 #  sources to files.qip.
@@ -84,11 +86,10 @@ source sys/sys.tcl
 source sys/sys_analog.tcl
 source files.qip
 
+set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
 
 # --------------------------------------------------------------------------
 #  Debug build: adds the OSD's Debug page (Arcade-Atari-G42.sv, `ifdef
 #  G42_DEBUG). The release build (Arcade-Atari-G42.qsf) leaves it undefined.
 # --------------------------------------------------------------------------
 set_global_assignment -name VERILOG_MACRO "G42_DEBUG=1"
-
-set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
