@@ -77,21 +77,26 @@ without wait states, as they do from the board's EPROMs.
 
 ## Using the core
 
-ROMs are not distributed with this core. Put the `.mra` files from `mra/`
-(all five sets) or `releases/` (the three main sets) in `_Arcade`, the core
-(`Arcade-Atari-G42.rbf`, optionally renamed `Arcade-Atari-G42_<date>.rbf`)
-in `_Arcade/cores`, and `roadriot.zip`, `guardian.zip` and `dangerex.zip`
-in `/games/mame/`. Any MiSTer SDRAM module is enough. The first boot after a
+ROMs are not distributed with this core. Copy what is in `mra/` to
+`_Arcade`: the three games' MRAs are at its root, and the two older Road
+Riot 4WD sets are in `_alternatives/_Road Riot 4WD`, where MiSTer lists
+other versions of a game. Put the core from `releases/`
+(`Arcade-Atari-G42_<date>.rbf`) in `_Arcade/cores`, and `roadriot.zip`,
+`guardian.zip` and `dangerex.zip` in `/games/mame/`. Any MiSTer SDRAM module is enough. The first boot after a
 load takes one to two seconds longer than the game's own, while the core
 checks the SDRAM and indexes the motion-object ROM.
 
 To build the core, open `Arcade-Atari-G42.qpf` in Quartus Prime 17.0 Lite and
-compile; the result is `output_files/Arcade-Atari-G42.rbf`.
+compile. When the compilation succeeds, `release_rbf.tcl` moves the core from
+`output_files/Arcade-Atari-G42.rbf` to `releases/Arcade-Atari-G42_<date>.rbf`,
+dated like the version in the OSD; a second build on the same day replaces
+that day's file.
 
 For diagnosis there is a debug build: open `Arcade-Atari-G42_debug.qpf`
-instead, which builds `output_files/Arcade-Atari-G42_debug.rbf`, the same core
-with the OSD's **Debug** page added. The MRAs start either build, so keep only
-one of them in `_Arcade/cores`: with both there, MiSTer picks the debug build.
+instead, which builds `output_files/Arcade-Atari-G42_debug.rbf` (it stays
+there), the same core with the OSD's **Debug** page added. The MRAs start
+either build, so keep only one of them in `_Arcade/cores`: with both there,
+MiSTer picks the debug build.
 
 ### Controls
 
@@ -114,14 +119,23 @@ then turn it off and reset to play. They are kept in the game's EEPROM,
 which the core saves to the SD card. Road Riot's wheel and pedal calibration
 is in its switch test.
 
+The analog picture sits in the middle of a standard 15 kHz screen with
+equal margins: the sync pulses are where broadcast timing puts them around
+the picture. The height is the monitor's own (its vertical size).
+
 The OSD's main page has:
 
 * **Aspect ratio**, **Scandoubler Fx** and **Scale**: MiSTer's standard
   options.
-* **[CRT Adjust](https://github.com/rmonic79/MiSTer-CRT-Adjust)**: the
-  picture's width and position on a 15 kHz CRT (H-Size, H-Position,
-  V-Shift, shown while it is on). It switches itself off while a Scandoubler
-  Fx option is on, and the HDMI picture follows the adjustment too.
+* **[CRT Adjust](https://github.com/rmonic79/MiSTer-CRT-Adjust)** page: the
+  picture's width and position on a 15 kHz CRT, working outward from the
+  centre, so with every amount at 0 the picture is where it is with CRT
+  Adjust off. **CRT Auto-Width** makes the picture about 48.4 µs wide, so on
+  a screen with ordinary overscan it reaches the edges with only a few dots
+  hidden; **H-Size** trims it about the middle of the screen (each step
+  about 3 %, up to +5 in all); **H-Position** and **V-Shift** move it.
+  CRT Adjust switches itself off while a Scandoubler Fx option is on, and
+  the HDMI picture follows the adjustment too.
 * **Service Menu**: the game's own test menu, from the next reset.
 * **Controls** page, Road Riot only: wheel sensitivity for an analog stick.
 * **Debug** page, debug build only: a diagnostic overlay, the watchdog, half
@@ -140,7 +154,8 @@ compiled into the core.
 
 **[MiSTer-CRT-Adjust](https://github.com/rmonic79/MiSTer-CRT-Adjust)** by
 Umberto Parisi (**rmonic79**), with Andrea Bogazzi (**asturur**): the CRT
-geometry module in `rtl/crt/`, used unmodified.
+geometry module in `rtl/crt/`, with one fix (negative H-Position offsets),
+the same as in the ITech8 core.
 
 **[fx68k](https://github.com/ijor/fx68k)** by Jorge Cwik: the 68000.
 
@@ -156,7 +171,8 @@ project template. MiSTer's `mra_loader.cpp` is the reference for the MRA
 checks.
 
 The **Atari G1 core** (Gm0rk) is the base of this one's SDRAM controller,
-self-test, clock scheme and overlay.
+self-test, clock scheme and overlay, and the **ITech8 core** (Gm0rk) of its
+analog centring, CRT Adjust glue and CRT Auto-Width.
 
 ## License
 
