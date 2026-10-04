@@ -13,6 +13,9 @@
 //  was high (never pixel 0, and 336 is outside the line buffers). Here vis_x
 //  is the previous dot's hcnt, so de = 1 exactly for x = 0..335.
 //
+//  The sync is centred for a 15 kHz screen (g42_pkg), and VSync starts and
+//  ends on HSync leading edges, as in broadcast sync.
+//
 //  Clock domain: clk_sys, advanced by ce_pix (one pulse per dot).
 //============================================================================
 
@@ -22,7 +25,8 @@ module g42_video_timing
 	import g42_pkg::*;
 #(
 	// Porch/sync split. MAME's totals come from published specs; the split is
-	// an estimate (the board's SOS chip is undocumented), so it is a parameter.
+	// not documented (the board's SOS chip), so it is a parameter. The defaults
+	// centre the picture for broadcast-calibrated 15 kHz sets (see g42_pkg).
 	parameter int P_H_FRONT = H_FRONT,
 	parameter int P_H_SYNC  = H_SYNC,
 	parameter int P_V_FRONT = V_FRONT,
@@ -90,14 +94,21 @@ module g42_video_timing
 	// counters, so all of them describe one pixel. The *_n names mean "next".
 	//------------------------------------------------------------------------
 	logic hblank_n, vblank_n, hsync_n, vsync_n;
+	logic [VCNT_W-1:0] hs_line;
 	logic [8:0] hpos_d;
 	logic [7:0] vpos_d;
 
+	// VSync's edges sit on HSync leading edges, as broadcast sync and the
+	// handoff's it8_sync_center put them: hs_line is the line the latest
+	// HSync began (HSync comes late in the line before its picture), and
+	// VSync covers the three lines HSync begins from VS_START on.
 	always_comb begin
 		hblank_n = (hcnt >= HCNT_W'(H_VISIBLE));
 		vblank_n = (vcnt >= VCNT_W'(V_VISIBLE));
 		hsync_n  = (hcnt >= HCNT_W'(HS_START)) && (hcnt < HCNT_W'(HS_END));
-		vsync_n  = (vcnt >= VCNT_W'(VS_START)) && (vcnt < VCNT_W'(VS_END));
+		hs_line  = (hcnt < HCNT_W'(HS_START))    ? vcnt
+		         : (vcnt == VCNT_W'(V_TOTAL - 1)) ? '0 : vcnt + 1'b1;
+		vsync_n  = (hs_line >= VCNT_W'(VS_START)) && (hs_line < VCNT_W'(VS_END));
 	end
 
 	always_ff @(posedge clk) begin
