@@ -2,9 +2,11 @@
 #
 #  Atari G42 for MiSTer -- Quartus settings, release build
 #
-#  Builds output_files/Arcade-Atari-G42.rbf, without the OSD's Debug page.
-#  Arcade-Atari-G42_debug.qsf is the debug build: the same settings plus the
-#  Verilog macro G42_DEBUG; keep the two in step.
+#  Builds output_files/Arcade-Atari-G42.rbf, without the OSD's Debug page,
+#  and on success moves it to releases/Arcade-Atari-G42_YYYYMMDD.rbf
+#  (release_rbf.tcl). Arcade-Atari-G42_debug.qsf is the debug build: the same
+#  settings with the Verilog macro G42_DEBUG and without the release script;
+#  keep the two in step otherwise.
 #
 #  Do not add files through the Quartus IDE: it rewrites this file. Add
 #  sources to files.qip.
@@ -77,6 +79,15 @@ set_global_assignment -name SEED 1
 
 # Disable ALSA audio output to save some resources
 #set_global_assignment -name VERILOG_MACRO "MISTER_DISABLE_ALSA=1"
+
+# --------------------------------------------------------------------------
+#  Release packaging (release build only)
+# --------------------------------------------------------------------------
+#  After a successful compilation, release_rbf.tcl moves
+#  output_files/Arcade-Atari-G42.rbf to releases/Arcade-Atari-G42_YYYYMMDD.rbf.
+#  sys/sys.tcl sets the pre-flow script (build_id.tcl); this is the post-flow
+#  one. Arcade-Atari-G42_debug.qsf leaves it out.
+set_global_assignment -name POST_FLOW_SCRIPT_FILE "quartus_sh:release_rbf.tcl"
 
 source sys/sys.tcl
 source sys/sys_analog.tcl
