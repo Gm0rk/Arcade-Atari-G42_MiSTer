@@ -17,7 +17,8 @@
 #      mem/        FPGA side only: ROM loader, SDRAM controller and arbiter,
 #                  block RAM modules (g42_dpram, g42_tdpram)
 #      debug/      the on-screen diagnostic overlay
-#      crt/        rmonic79's CRT Adjust
+#      crt/        rmonic79's CRT Adjust and its glue (g42_crt_path:
+#                  CRT Auto-Width, H-Size about the middle)
 #
 #  Third-party cores (fx68k, T65, jt51, jt6295) are under rtl/, each in its
 #  own folder.
@@ -84,6 +85,7 @@ set_global_assignment -name SYSTEMVERILOG_FILE rtl/debug/g42_dbg_text.sv
 
 # --- CRT Adjust (rmonic79/MiSTer-CRT-Adjust, GPL-3.0) ------------------------------------
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/crt/crt_adjust.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/crt/g42_crt_path.sv
 
 # --- The game system and the framework glue ------------------------------------------------
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/g42_core.sv
