@@ -9,10 +9,12 @@
 //
 //  Video: the core's native 15 kHz stream goes through arcade_video (the
 //  scandoubler, HQ2x and scanline options, gamma) or, when CRT Adjust is on,
-//  through rmonic79's crt_adjust (H-Size, H-Position and V-Shift for an
-//  analog CRT, see rtl/crt/crt_adjust.sv). CRT Adjust is forced off while a
-//  scandoubler option is active: its read-rate base assumes the native pixel
-//  clock. video_freak sets the aspect ratio and integer scaling for HDMI.
+//  through g42_crt_path: rmonic79's crt_adjust (H-Size, H-Position and
+//  V-Shift for an analog CRT) with CRT Auto-Width, built to the "CRT Adjust
+//  and Auto-Width" porting handoff from Arcade-ITech8 (rtl/crt/
+//  g42_crt_path.sv). CRT Adjust is forced off while a scandoubler option is
+//  active: its read-rate base assumes the native pixel clock. video_freak sets the aspect ratio and
+//  integer scaling for HDMI.
 //
 //  The module must be named "emu" and use sys/emu_ports.vh; the framework
 //  binds to those names.
@@ -52,35 +54,48 @@ module emu
 	//  OSD
 	//========================================================================
 	// Two builds share this file:
-	//   Arcade-Atari-G42        release: the video options, CRT Adjust and
-	//                           the Service Menu on the main page, and a
-	//                           Controls page for Road Riot only
+	//   Arcade-Atari-G42        release: the video options and the Service
+	//                           Menu on the main page, a CRT Adjust page, and
+	//                           a Controls page for Road Riot only
 	//   Arcade-Atari-G42_debug  the same plus a Debug page; its .qsf defines
 	//                           the Verilog macro G42_DEBUG
 	//
+	// The CRT Adjust page is laid out as the "CRT Adjust and Auto-Width"
+	// handoff (Arcade-ITech8) has it, on the same status bits.
+	//
 	// Hidden entries (status_menumask, the H<n> prefixes):
-	//   H1  CRT H-Size, H-Position, V-Shift: while CRT Adjust is off
+	//   H1  CRT Auto-Width, H-Size, H-Position, V-Shift: while CRT Adjust is
+	//       off
 	//   H2  the Controls page: unless the loaded game is Road Riot (its
 	//       wheel sensitivity is the only control option). The game comes
 	//       from the MRA's configuration bytes, so the page appears once a
 	//       Road Riot MRA has loaded.
 	//
+	// Pages: P1 CRT Adjust, P2 Controls, P3 Debug (debug build).
+	//
 	// Status bits:
 	//   0        reset                    23       Service Menu
 	//   4:2      scandoubler fx           24       diagnostic overlay (debug)
 	//   7:5      scale                    101      CRT Adjust
-	//   10       68000 clock (debug)      100:96   CRT H-Size
-	//   11       watchdog (debug)         85:79    CRT H-Position
-	//   13:12    wheel sensitivity        78:74    CRT V-Shift
-	//   16:14    layers off (debug)       122:121  aspect ratio
-	//   20:17    SDRAM capture (debug)
+	//   10       68000 clock (debug)      102      CRT Auto-Width
+	//   11       watchdog (debug)         100:96   CRT H-Size
+	//   13:12    wheel sensitivity        85:79    CRT H-Position
+	//   16:14    layers off (debug)       78:74    CRT V-Shift
+	//   20:17    SDRAM capture (debug)    122:121  aspect ratio
 	// The bits keep their places in both builds, so a game's saved settings
 	// read the same in either; the release build ignores the debug ones
-	// (dstatus below).
+	// (dstatus below). CRT Auto-Width was "CRT Auto-Fill" on the same bit.
 	// build_id.v provides `BUILD_DATE; sys/build_id.tcl writes it before
 	// every compile.
 	//------------------------------------------------------------------------
 	`include "build_id.v"
+
+	// CRT Adjust amounts, as in the handoff: H-Size and V-Shift are 5-bit
+	// two's complement (0, +1..+15, -16..-1); the H-Position list is 0..+48
+	// then -48..-1 (entry 49 = -48), decoded in g42_crt_path.
+	localparam CRT_S5 = "0,+1,+2,+3,+4,+5,+6,+7,+8,+9,+10,+11,+12,+13,+14,+15,-16,-15,-14,-13,-12,-11,-10,-9,-8,-7,-6,-5,-4,-3,-2,-1";
+	localparam CRT_HP = "0,+1,+2,+3,+4,+5,+6,+7,+8,+9,+10,+11,+12,+13,+14,+15,+16,+17,+18,+19,+20,+21,+22,+23,+24,+25,+26,+27,+28,+29,+30,+31,+32,+33,+34,+35,+36,+37,+38,+39,+40,+41,+42,+43,+44,+45,+46,+47,+48,-48,-47,-46,-45,-44,-43,-42,-41,-40,-39,-38,-37,-36,-35,-34,-33,-32,-31,-30,-29,-28,-27,-26,-25,-24,-23,-22,-21,-20,-19,-18,-17,-16,-15,-14,-13,-12,-11,-10,-9,-8,-7,-6,-5,-4,-3,-2,-1";
+
 	localparam CONF_STR = {
 		"Atari-G42;;",
 		"-;",
@@ -88,33 +103,39 @@ module emu
 		"O[4:2],Scandoubler Fx,None,HQ2x,CRT 25%,CRT 50%,CRT 75%;",
 		"O[7:5],Scale,Normal,V-Integer,Narrower HV-Integer,Wider HV-Integer;",
 		"-;",
-		// CRT Adjust (analog 15 kHz output). H1 hides the amounts while off.
-		"O[101],CRT Adjust,Off,On;",
-		"H1O[100:96],CRT H-Size,0,+1,+2,+3,+4,+5,+6,+7,+8,+9,+10,+11,+12,+13,+14,+15,-16,-15,-14,-13,-12,-11,-10,-9,-8,-7,-6,-5,-4,-3,-2,-1;",
-		"H1O[85:79],CRT H-Position,0,+1,+2,+3,+4,+5,+6,+7,+8,+9,+10,+11,+12,+13,+14,+15,+16,+17,+18,+19,+20,+21,+22,+23,+24,+25,+26,+27,+28,+29,+30,+31,+32,-32,-31,-30,-29,-28,-27,-26,-25,-24,-23,-22,-21,-20,-19,-18,-17,-16,-15,-14,-13,-12,-11,-10,-9,-8,-7,-6,-5,-4,-3,-2,-1;",
-		"H1O[78:74],CRT V-Shift,0,+1,+2,+3,+4,+5,+6,+7,+8,+9,+10,+11,+12,+13,+14,+15,-16,-15,-14,-13,-12,-11,-10,-9,-8,-7,-6,-5,-4,-3,-2,-1;",
+		// CRT Adjust (analog 15 kHz output). H1 hides the amounts while it is
+		// off. Auto-Width makes the picture 48.75 us wide; H-Size trims from
+		// there about the middle of the screen; H-Position and V-Shift move
+		// it from the centre.
+		"P1,CRT Adjust;",
+		"P1-;",
+		"P1O[101],CRT Adjust,Off,On;",
+		"H1P1O[102],CRT Auto-Width,Off,On;",
+		"H1P1O[100:96],CRT H-Size,", CRT_S5, ";",
+		"H1P1O[85:79],CRT H-Position,", CRT_HP, ";",
+		"H1P1O[78:74],CRT V-Shift,", CRT_S5, ";",
 		"-;",
 		// The game's own test menu: set On, then reset.
 		"O[23],Service Menu,Off,On;",
 		// Road Riot's wheel from an analog stick. Medium (100%) is first so
 		// it is the default.
-		"H2P1,Controls;",
-		"P1-;",
-		"P1O[13:12],Wheel sensitivity,Medium,High,Low;",
+		"H2P2,Controls;",
+		"P2-;",
+		"P2O[13:12],Wheel sensitivity,Medium,High,Low;",
 `ifdef G42_DEBUG
-		"P2,Debug;",
-		"P2-;",
-		"P2O[24],Diagnostic overlay,Off,On;",
-		"P2O[11],Watchdog,Enabled,Disabled;",
-		"P2O[10],68000 clock,14.318MHz,7.159MHz;",
-		"P2-;",
-		"P2O[14],Motion objects,On,Off;",
-		"P2O[15],Playfield,On,Off;",
-		"P2O[16],Alphanumerics,On,Off;",
-		"P2-;",
-		"P2O[20],SDRAM capture,Auto (self-test),Manual;",
-		"P2O[18:17],Manual read phase,t8,t9,t10,t7;",
-		"P2O[19],Manual sample edge,Falling,Rising;",
+		"P3,Debug;",
+		"P3-;",
+		"P3O[24],Diagnostic overlay,Off,On;",
+		"P3O[11],Watchdog,Enabled,Disabled;",
+		"P3O[10],68000 clock,14.318MHz,7.159MHz;",
+		"P3-;",
+		"P3O[14],Motion objects,On,Off;",
+		"P3O[15],Playfield,On,Off;",
+		"P3O[16],Alphanumerics,On,Off;",
+		"P3-;",
+		"P3O[20],SDRAM capture,Auto (self-test),Manual;",
+		"P3O[18:17],Manual read phase,t8,t9,t10,t7;",
+		"P3O[19],Manual sample edge,Falling,Rising;",
 `endif
 		"-;",
 		"T[0],Reset;",
@@ -351,128 +372,55 @@ module emu
 	assign CLK_VIDEO = clk_sys;
 
 	//========================================================================
-	//  Video: CRT Adjust path (rmonic79/MiSTer-CRT-Adjust, core-side glue)
+	//  Video: CRT Adjust path (rmonic79/MiSTer-CRT-Adjust, with Auto-Width)
 	//========================================================================
-	// Off while a scandoubler option is on: the read rate below is built for
-	// the native 15 kHz pixel clock.
+	// Off while a scandoubler option is on: the read rate is built for the
+	// native 15 kHz pixel clock. See rtl/crt/g42_crt_path.sv.
 	wire scandoubler = (status[4:2] != 3'd0) || forced_scandoubler;
 
-	logic              crt_on;
-	logic signed [4:0] hsize_s;
-	logic signed [5:0] vshift_s;
-	logic        [6:0] hpos_d;
+	wire       crt_on, crt_ce, crt_hs, crt_vs, crt_de;
+	wire [7:0] crt_r, crt_g, crt_b;
 
-	always_ff @(posedge clk_sys) begin
-		if (ce_pix) begin
-			crt_on   <= status[101] && !scandoubler;
-			hsize_s  <= $signed(status[100:96]);
-			vshift_s <= $signed({status[78], status[78:74]});
-			hpos_d   <= status[85:79];
-		end
-	end
+	g42_crt_path u_crt_path
+	(
+		.clk         (clk_sys),
+		.ce_pix      (ce_pix),
 
-	// H-Position option list: 0, +1..+32, then -32..-1 (entries 33..64)
-	wire signed [8:0] hpos_off = (hpos_d <= 7'd32) ? $signed({2'b00, hpos_d})
-	                                               : $signed({2'b00, hpos_d}) - 9'sd65;
+		.enable      (status[101]),
+		.autowidth   (status[102]),
+		.hsize       (status[100:96]),
+		.hpos        (status[85:79]),
+		.vshift      (status[78:74]),
+		.scandoubler (scandoubler),
 
-	//------------------------------------------------------------------------
-	// Read clock enable: one output pixel every (32 + H-Size) quarter clocks.
-	// The native pixel is 8 clk_sys = 32 quarters (57.27 / 7.159 MHz), so an
-	// H-Size step is 1/32 of the width. The accumulator restarts on the rise
-	// of the module's hs_ref_out, never the raw HSync (module's wiring rule).
-	//------------------------------------------------------------------------
-	wire       hs_ref;
-	logic      hs_ref_d;
-	always_ff @(posedge clk_sys) hs_ref_d <= hs_ref;
-	wire       hs_ref_rise = hs_ref & ~hs_ref_d;
+		.r_in        (vid_r),
+		.g_in        (vid_g),
+		.b_in        (vid_b),
+		.hblank      (vid_hblank),
+		.vblank      (vid_vblank),
+		.hsync       (vid_hsync),
+		.vsync       (vid_vsync),
 
-	wire [7:0] rd_period = 8'd32 + {{3{hsize_s[4]}}, hsize_s};  // 16..47 quarters
-	logic [7:0] rd_acc;
-	wire       rd_tick = (rd_acc + 8'd4) >= rd_period;
-
-	always_ff @(posedge clk_sys) begin
-		if      (hs_ref_rise) rd_acc <= 8'd0;
-		else if (rd_tick)     rd_acc <= rd_acc + 8'd4 - rd_period;
-		else                  rd_acc <= rd_acc + 8'd4;
-	end
-
-	wire rd_ce = crt_on ? rd_tick : ce_pix;
-
-	wire [7:0] str_r, str_g, str_b;
-	wire       str_hs, str_vs, str_hb, str_vb;
-
-	// CONTENTSHIFT: the active area is 336 of 456 dots, a wide, centred
-	// picture, so H-Position moves the content and HSync stays native.
-	crt_adjust #(
-		.VTOTAL    (V_TOTAL),
-		.HTOTAL    (H_TOTAL),
-		.HPOS_MODE (1)
-	) u_crt_adjust (
-		.clk        (clk_sys),
-		.pxl_cen    (ce_pix),
-		.pxl2_cen   (rd_ce),
-		.active     (crt_on),
-		.hsize      (hsize_s),
-		.hoffset    (hpos_off),
-		.voffset    (vshift_s),
-		.r_in       (vid_r),
-		.g_in       (vid_g),
-		.b_in       (vid_b),
-		.hs_in      (vid_hsync),
-		.vs_in      (vid_vsync),
-		.hb_in      (vid_hblank | vid_vblank),
-		.vb_in      (vid_vblank),            // the true vertical blank (module rule)
-		.r_out      (str_r),
-		.g_out      (str_g),
-		.b_out      (str_b),
-		.hs_out     (str_hs),
-		.vs_out     (str_vs),
-		.hb_out     (str_hb),
-		.vb_out     (str_vb),
-		.hs_ref_out (hs_ref)
+		.active      (crt_on),
+		.ce_out      (crt_ce),
+		.r_out       (crt_r),
+		.g_out       (crt_g),
+		.b_out       (crt_b),
+		.hs_out      (crt_hs),
+		.vs_out      (crt_vs),
+		.de_out      (crt_de)
 	);
-
-	//------------------------------------------------------------------------
-	// OSD anchoring: the MiSTer OSD centres on the rising edge of VGA_DE, so
-	// the DE window opens at the native active start and closes at the
-	// stretched active end; the picture moves, the OSD stays put. vblank_1l is
-	// VBLANK one line late, because the module outputs the previous line; it
-	// is taken at the end of each line's active part.
-	//------------------------------------------------------------------------
-	logic vid_hblank_d, vblank_1l;
-	always_ff @(posedge clk_sys) begin
-		if (ce_pix) begin
-			vid_hblank_d <= vid_hblank;
-			if (vid_hblank && !vid_hblank_d) vblank_1l <= vid_vblank;
-		end
-	end
-
-	wire  native_active = ~(vid_hblank | vblank_1l);
-	logic native_active_d;
-	always_ff @(posedge clk_sys) if (ce_pix) native_active_d <= native_active;
-	wire  native_rise = native_active & ~native_active_d;
-
-	wire  str_active = ~str_hb;
-	logic str_active_d;
-	always_ff @(posedge clk_sys) if (rd_ce) str_active_d <= str_active;
-	wire  str_fall = str_active_d & ~str_active;
-
-	logic de_osd;
-	always_ff @(posedge clk_sys) begin
-		if      (native_rise) de_osd <= 1'b1;
-		else if (str_fall)    de_osd <= 1'b0;
-	end
 
 	//========================================================================
 	//  Video outputs
 	//========================================================================
-	assign VGA_R    = crt_on ? str_r  : av_r;
-	assign VGA_G    = crt_on ? str_g  : av_g;
-	assign VGA_B    = crt_on ? str_b  : av_b;
-	assign VGA_HS   = crt_on ? str_hs : av_hs;
-	assign VGA_VS   = crt_on ? str_vs : av_vs;
+	assign VGA_R    = crt_on ? crt_r  : av_r;
+	assign VGA_G    = crt_on ? crt_g  : av_g;
+	assign VGA_B    = crt_on ? crt_b  : av_b;
+	assign VGA_HS   = crt_on ? crt_hs : av_hs;
+	assign VGA_VS   = crt_on ? crt_vs : av_vs;
 	assign VGA_SL   = crt_on ? 2'd0   : av_sl;
-	assign CE_PIXEL = crt_on ? rd_ce  : av_ce;
+	assign CE_PIXEL = crt_on ? crt_ce : av_ce;
 
 	// Aspect ratio and integer scaling for the HDMI scaler
 	wire [1:0] ar = status[122:121];
@@ -487,7 +435,7 @@ module emu
 		.VGA_DE      (VGA_DE),
 		.VIDEO_ARX   (VIDEO_ARX),
 		.VIDEO_ARY   (VIDEO_ARY),
-		.VGA_DE_IN   (crt_on ? de_osd : av_de),
+		.VGA_DE_IN   (crt_on ? crt_de : av_de),
 		.ARX         ((!ar) ? 12'd4 : {10'd0, ar - 2'd1}),
 		.ARY         ((!ar) ? 12'd3 : 12'd0),
 		.CROP_SIZE   (12'd0),
