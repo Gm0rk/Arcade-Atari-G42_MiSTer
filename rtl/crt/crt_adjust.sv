@@ -57,6 +57,9 @@
 //  ─── License ───────────────────────────────────────────────────────────────
 //  Author: Umberto Parisi (rmonic79), 2026.
 //  Distributed under GNU GPL v3 or later.
+//
+//  Modified for Arcade-Atari-G42 (2026), the same fix as in Arcade-ITech8:
+//  negative H-Position offsets are sign-extended (see hoff_s below).
 //============================================================================
 
 // ----------------------------------------------------------------------------
@@ -315,8 +318,13 @@ module crt_adjust #(
     // In HPOS_SYNCSHIFT the horizontal offset is applied to HSync out (see below),
     // NOT to the read window: the content stays anchored natively, so the read
     // offset is forced to 0 here and hb1/hb0 keep gating the native active area.
+    //
+    // Arcade-Atari-G42 (2026), as in Arcade-ITech8: hoffset is sign-extended
+    // by hand. With $signed() as one branch and an unsigned zero as the other,
+    // the conditional is unsigned, so a negative H-Position was zero-extended
+    // (-6 read as +506) and the read window left the line: a black picture.
     wire signed [AW+1:0] hoff_s  = (HPOS_MODE == `HPOS_CONTENTSHIFT)
-                                   ? $signed(hoffset)
+                                   ? {{(AW+2-9){hoffset[8]}}, hoffset}
                                    : {(AW+2){1'b0}};
     wire signed [AW+1:0] rdcnt_s = $signed({2'b0, rdcnt});
     wire signed [AW+1:0] hb1_s   = $signed({2'b0, hb1});
