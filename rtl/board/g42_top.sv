@@ -763,21 +763,27 @@ module g42_top
 		end
 	end
 
-	// Clocks per frame the 68000 was held for program ROM, out of 954,480:
-	// clocks without DTACK from the fifth after the strobes on. A 68000 read
-	// needs DTACK about five clk_sys after its strobes to run without wait
-	// states, so this counts the wait states the SDRAM costs (cache misses).
+	// Clocks per frame the 68000 was held for program ROM, out of 955,776
+	// (456 x 262 x 8): the AS-low clocks of ROM reads beyond the 10 of a
+	// zero-wait read (the length of every work RAM read here) at 14.318 MHz.
+	// Each is a clock the game runs behind the board, as the 68000 does not
+	// catch up. rom_cyc_clk is k-1 in a read's k-th AS-low clock (rd_start is
+	// the first), so the count starts with the 11th.
+	// Modified for Arcade-Atari-G42 (2026): it counted clocks without DTACK
+	// from the sixth on, which includes zero-wait hits (about one clock per
+	// ROM read when no read waited at all).
 	logic [23:0] rom_wait_cnt;
-	logic [2:0]  rom_cyc_clk;
+	logic [3:0]  rom_cyc_clk;
 	always_ff @(posedge clk) begin
-		if (rd_start)                rom_cyc_clk <= 3'd1;
-		else if (rom_cyc_clk != 3'd7) rom_cyc_clk <= rom_cyc_clk + 1'b1;
+		if (rd_start)                  rom_cyc_clk <= 4'd1;
+		else if (cpu_as_n)             rom_cyc_clk <= 4'd0;
+		else if (rom_cyc_clk != 4'd15) rom_cyc_clk <= rom_cyc_clk + 1'b1;
 
 		if (vblank_rise) begin
 			dbg_rom_wait <= rom_wait_cnt;
 			rom_wait_cnt <= 24'd0;
 		end
-		else if (sel_rom && !rom_ready && rom_cyc_clk >= 3'd5) begin
+		else if (sel_rom && !cpu_as_n && rom_cyc_clk >= 4'd10) begin
 			rom_wait_cnt <= rom_wait_cnt + 1'b1;
 		end
 	end
