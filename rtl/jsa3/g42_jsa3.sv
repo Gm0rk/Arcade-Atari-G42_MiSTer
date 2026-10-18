@@ -359,13 +359,19 @@ module g42_jsa3
 	// ROM-read cycle waits for the byte (ce_pend): a slow grant stretches that
 	// cycle, and the following one ends on the grid again.
 	//
-	// A bus cycle is at least two clocks: cpu_ce_q blocks an enable in the
-	// clock after one (the tick waits in ce_pend). Otherwise a stretched
-	// enable just before a grid tick makes a one-clock cycle whose RAM read
-	// returns ram_q for the previous address. It also lets Enable use the
-	// registered rom_cycle_q and rom_have, keeping T65's Enable (which fans out
-	// to the whole CPU) off T65's address adder, the decode and the tag
-	// compare.
+	// A bus cycle is at least CE_GAP (8) clocks: ce_gap blocks the enable for
+	// the 7 clocks after one, and a grid tick that falls there waits in
+	// ce_pend (it fires at most 7 clocks late, so none is lost: the grid is
+	// 32 clocks). Arcade-Atari-G42.sdc relies on this: it gives T65's
+	// internal paths 8 clocks (set_multicycle_path -setup 8). Without the gap,
+	// an enable stretched to just before a grid tick (a fetch slower than
+	// about 54 clocks) is followed by the tick's enable 2 clocks later, inside
+	// that claim. The gap also keeps such a pair from making a short cycle
+	// whose RAM read returns ram_q for the previous address, and lets Enable
+	// use the registered rom_cycle_q and rom_have, keeping T65's Enable (which
+	// fans out to the whole CPU) off T65's address adder, the decode and the
+	// tag compare.
+	// Modified for Arcade-Atari-G42 (2026): was a one-clock block (cpu_ce_q).
 	//
 	// A request is never dropped: a board reset during a fetch lets it finish
 	// (the SDRAM protocol holds req and address until ack) and the new
@@ -385,12 +391,14 @@ module g42_jsa3
 	assign prog_req  = req_busy || need_fetch;
 	assign prog_addr = SDR_JSA + {9'd0, prog_widx, 1'b0};
 
-	logic rom_have;            // the buffer holds the byte for the current address
-	logic ce_pend;             // a ce_6502 tick is waiting for that byte
-	logic rom_cycle_q;
-	logic cpu_ce_q;
+	localparam int CE_GAP = 8;  // least clk_sys from one enable to the next (the .sdc's claim)
 
-	always_comb cpu_ce = (ce_6502 || ce_pend) && !cpu_ce_q && (!rom_cycle_q || rom_have);
+	logic rom_have;            // the buffer holds the byte for the current address
+	logic ce_pend;             // a ce_6502 tick is waiting (for that byte, or for ce_gap)
+	logic rom_cycle_q;
+	logic [2:0] ce_gap;        // clocks the enable is still blocked after the last one
+
+	always_comb cpu_ce = (ce_6502 || ce_pend) && (ce_gap == 3'd0) && (!rom_cycle_q || rom_have);
 
 	always_ff @(posedge clk) begin
 		if (!rst_n) begin
@@ -413,11 +421,12 @@ module g42_jsa3
 		if (board_rst) begin
 			rom_have    <= 1'b0;
 			ce_pend     <= 1'b0;
-			cpu_ce_q    <= 1'b0;
+			ce_gap      <= 3'd0;
 			rom_cycle_q <= 1'b0;
 		end
 		else begin
-			cpu_ce_q    <= cpu_ce;
+			if (cpu_ce)               ce_gap <= 3'(CE_GAP - 1);
+			else if (ce_gap != 3'd0)  ce_gap <= ce_gap - 1'b1;
 			rom_cycle_q <= rom_cycle;
 			if (cpu_ce) begin
 				rom_have <= 1'b0;
