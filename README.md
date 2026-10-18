@@ -31,12 +31,10 @@ db_url = https://raw.githubusercontent.com/Gm0rk/Gm0rkCores/db/db.json.zip
 | Guardians of the 'Hood | 1992 | 3 | guardian | **Playable on hardware, with sound.** |
 | Danger Express | 1992 (prototype) | 2 | dangerex | **Playable on hardware, with sound.** |
 
-All five sets are named as in MAME 0.264 and load from merged, split or
-non-merged ROM sets.
 
-Still to be checked on hardware: Road Riot's two older sets, the third
-Guardians player, Road Riot's wheel and pedal from an analog stick, CRT
-Adjust, and EEPROM settings saved across a reload.
+<img src="https://github.com/Gm0rk/Arcade-Atari-G42_MiSTer/blob/main/images/Guardians.png" width="400"><img src="https://github.com/Gm0rk/Arcade-Atari-G42_MiSTer/blob/main/images/Guardians2.png" width="400">
+<img src="https://github.com/Gm0rk/Arcade-Atari-G42_MiSTer/blob/main/images/DangerExpress.png" width="400"><img src="https://github.com/Gm0rk/Arcade-Atari-G42_MiSTer/blob/main/images/DangerExpress2.png" width="400">
+<img src="https://github.com/Gm0rk/Arcade-Atari-G42_MiSTer/blob/main/images/RoadRiot4wd.png" width="400"><img src="https://github.com/Gm0rk/Arcade-Atari-G42_MiSTer/blob/main/images/RoadRiot4wd2.png" width="400">
 
 ## The hardware
 
