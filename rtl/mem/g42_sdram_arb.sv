@@ -20,9 +20,16 @@
 //                   double-buffered framebuffer the object renderer has a full
 //                   frame and absorbs long stalls.
 //
-//  Bandwidth at 114.5 MHz and ~4 clocks per access: ~28 M accesses/s. CPU
-//  ~1.8 M/s worst case (14.3 MHz / 8 clocks per bus cycle), tiles ~1.8 M/s
-//  (two reads per tile row, 0.9 M rows/s), OKI ~0.03 M/s, RLE the rest.
+//  Bandwidth: one access at a time, about 6 clk_sys from grant to ack
+//  (sdram.sv's 9-clock slot at 114.5 MHz plus the handshake) and a clock
+//  between grants, so at most about 8 M accesses/s. Measured in the
+//  full-system simulation (sim/system, Guardians' attract, 800 frames): tile
+//  fetch 3.1 M/s (213 words a line on 240 lines), CPU channel 0.7 M/s (the
+//  68000's cache misses and prefetches, the 6502's fetches), RLE 0.2 M/s,
+//  OKI 0.06 M/s; the port is busy 42 % of the time. Without its cache the
+//  68000 alone could ask for 3.6 M/s (a word every 4-clock bus cycle).
+//  Modified for Arcade-Atari-G42 (2026): the old figures (28 M/s at ~4
+//  clocks an access, tiles 1.8 M/s) were estimates, about 3x too high.
 //
 //  Clock domain: clk_sys. The controller runs at clk_ram = 2 x clk_sys, an
 //  exact multiple, so the crossing is synchronous.
