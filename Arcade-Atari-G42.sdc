@@ -124,8 +124,11 @@ been optimised away as a constant in sdram.sv."
 set_multicycle_path -from [get_registers {*u_board|u_cpu|*}] -to [get_registers {*u_board|u_cpu|*}] -setup -end 2
 set_multicycle_path -from [get_registers {*u_board|u_cpu|*}] -to [get_registers {*u_board|u_cpu|*}] -hold  -end 1
 
-#  JSA III 6502 at 1.79 MHz: 32 clk_sys cycles per enable. Only 8 are
-#  claimed, leaving margin if the enable generator changes.
+#  JSA III 6502 at 1.79 MHz: 32 clk_sys cycles per enable on the grid. An
+#  enable that waited for a slow program-ROM fetch comes late, and the next
+#  grid tick can follow it closely, so the claim is not 32: g42_jsa3 holds
+#  any two enables at least 8 clk_sys apart (CE_GAP), which is what this
+#  claims. Change the two together.
 set_multicycle_path -from [get_registers {*u_jsa3|u_cpu|*}] -to [get_registers {*u_jsa3|u_cpu|*}] -setup -end 8
 set_multicycle_path -from [get_registers {*u_jsa3|u_cpu|*}] -to [get_registers {*u_jsa3|u_cpu|*}] -hold  -end 7
 
