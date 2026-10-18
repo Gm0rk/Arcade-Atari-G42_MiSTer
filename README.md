@@ -34,25 +34,9 @@ db_url = https://raw.githubusercontent.com/Gm0rk/Gm0rkCores/db/db.json.zip
 All five sets are named as in MAME 0.264 and load from merged, split or
 non-merged ROM sets.
 
-## Progress
-
-```
-MiSTer integration     ███████████████████░   95%
-ROM loading (.mra)     ███████████████████░   95%
-CPU (68000 + SLOOP)    ████████████████████  100%
-ASIC65 coprocessor     ███████████████████░   95%
-Memory subsystem       ████████████████████  100%
-Video                  ██████████████████░░   90%
-Sound (JSA III)        ██████████████████░░   90%
-I/O and controls       █████████████████░░░   85%
-                       ────────────────────
-Project                ███████████████████░   94%
-```
-
-All three games are playable on a DE10-Nano with sound. Still to be
-checked on hardware: Road Riot's two older sets, the third Guardians player,
-Road Riot's wheel and pedal from an analog stick, CRT Adjust, and EEPROM
-settings saved across a reload.
+Still to be checked on hardware: Road Riot's two older sets, the third
+Guardians player, Road Riot's wheel and pedal from an analog stick, CRT
+Adjust, and EEPROM settings saved across a reload.
 
 ## The hardware
 
@@ -176,9 +160,10 @@ Alexey Melnikov (**Sorgelig**): the framework in `sys/`, unmodified, and the
 project template. MiSTer's `mra_loader.cpp` is the reference for the MRA
 checks.
 
-The **Atari G1 core** (Gm0rk) is the base of this one's SDRAM controller,
-self-test, clock scheme and overlay, and the **ITech8 core** (Gm0rk) of its
-analog centring, CRT Adjust glue and CRT Auto-Width.
+**[MiSTer-CoreSkill](https://github.com/ppriest/MiSTer-CoreSkill)** by
+**ppriest**: its [clock guidance](https://github.com/ppriest/MiSTer-CoreSkill/blob/main/mister-arcade-core/references/clocks.md)
+(`mister-arcade-core/references/clocks.md`), which the core's clock plan was
+checked against (`docs/CLOCKS.md`).
 
 ## License
 
