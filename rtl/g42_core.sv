@@ -242,15 +242,24 @@ module g42_core
 	wire        st_req, st_solo;
 
 	//------------------------------------------------------------------------
-	// CPU channel: the 68000 and the 6502 share it (the 6502 at 1.79 MHz has
-	// a whole bus cycle of slack). Owner and address latch together before
-	// the request becomes visible, and the request drops for a clock at each
-	// handover, so the arbiter never sees one owner's address with the other's
-	// request. The self-test owns the channel outright while it runs, with
-	// both CPUs in reset.
+	// CPU channel: the 68000 and the 6502 share it. Owner and address latch
+	// together before the request becomes visible, and the request drops for
+	// a clock at each handover, so the arbiter never sees one owner's address
+	// with the other's request. The self-test owns the channel outright while
+	// it runs, with both CPUs in reset.
+	//
+	// When both ask at a handover, the one that did not have the last grant
+	// wins, so neither waits for more than one of the other's fetches. With
+	// the 68000 always first, its cache refills and prefetch streams (a ROM
+	// copy or checksum) took every handover: the 6502 waited up to 414
+	// clk_sys for a byte (Guardians' start-up in sim/system, about 13 of its
+	// bus cycles), and it lost about 1 in 4,000 of its clock ticks over the
+	// attract.
+	// Modified for Arcade-Atari-G42 (2026): was 68000 first.
 	//------------------------------------------------------------------------
 	logic        cpu_arb_req, cpu_owner_68k;
 	logic [24:0] cpu_arb_addr;
+	wire         cpu_take_68k = m68k_rom_req && (!jsa_prog_req || !cpu_owner_68k);
 
 	always_ff @(posedge clk) begin
 		if (!rst_n_mem) begin
@@ -260,7 +269,7 @@ module g42_core
 		end
 		else if (!cpu_arb_req) begin
 			if (!st_busy) begin
-				if (m68k_rom_req) begin
+				if (cpu_take_68k) begin
 					cpu_owner_68k <= 1'b1;
 					cpu_arb_addr  <= m68k_rom_addr;
 					cpu_arb_req   <= 1'b1;
@@ -772,8 +781,9 @@ module g42_core
 	//         02 ASIC65, 01 work RAM), GG game id, LLLL I/O latch
 	//   WDOG  CC AAAAAA: watchdog resets, address of the last cycle before one
 	//   IRQ   interrupt acknowledges | frames since reset
-	//   ROMW  WWWWWW XX: clk_sys the 68000 waited for ROM last frame (a frame
-	//         is 954,480 = $E9070); XX = SLOOP bank changes x 4 + bank
+	//   ROMW  WWWWWW XX: clk_sys the 68000 waited for ROM last frame, beyond
+	//         a zero-wait read (a frame is 955,776 = $E9580); XX = SLOOP bank
+	//         changes x 4 + bank
 	//   CACH  program ROM reads last frame | ... that missed the ROM cache
 	//   SND   commands written | responses read | last response
 	//   JSA   6502 PC | 6502 bus cycles per frame / 256
