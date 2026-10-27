@@ -1,6 +1,6 @@
 # Atari G42 for MiSTer FPGA
 
-A work-in-progress FPGA implementation of Atari Games' **G42** arcade
+A FPGA implementation of Atari Games' **G42** arcade
 hardware, the board under **Road Riot 4WD**, **Guardians of the 'Hood** and
 **Danger Express**, written for the [MiSTer](https://github.com/MiSTer-devel)
 platform.
@@ -8,12 +8,8 @@ platform.
 **All three games are playable on a DE10-Nano, with sound.** See
 [Games](#games).
 
-> **This core was made with AI.** The RTL, testbenches, reference models and
-> documentation were written with an AI assistant (Claude, by Anthropic),
-> working from MAME's source and the games' own test screens. Every block was
-> checked in simulation against a MAME-derived reference, the whole core was
-> run in a full-system simulation against MAME, and it was then tested on a
-> DE10-Nano. This is disclosed so you can decide whether to use it.
+> **AI disclosure:** this core was developed using AI and MAME as a reference.
+> (Claude, by Anthropic - Opus 5.5 & Sonnet 5.5).
 
 ---
 
