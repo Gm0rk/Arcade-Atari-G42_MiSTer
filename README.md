@@ -12,7 +12,6 @@ Express. All three games are playable on a DE10-Nano, with sound.
 - [Hardware](#hardware)
 - [Games](#games)
 - [ROMs](#roms)
-- [Building](#building)
 - [Credits and references](#credits-and-references)
 - [License](#license)
 
@@ -34,9 +33,9 @@ Express. All three games are playable on a DE10-Nano, with sound.
 
 | Game | Main set | Title Screen | Gameplay |
 |---|---|---|---|
-| Danger Express (prototype) | dangerex (prototype) | <img src="https://github.com/Gm0rk/Arcade-Atari-G42_MiSTer/blob/main/images/DangerExpress.png" width="300" alt="Danger Express title screen"> | <img src="https://github.com/Gm0rk/Arcade-Atari-G42_MiSTer/blob/main/images/DangerExpress2.png" width="300" alt="Danger Express  gameplay"> |
-| Guardians of the 'Hood | guardian | <img src="https://github.com/Gm0rk/Arcade-Atari-G42_MiSTer/blob/main/images/Guardians.png" width="300" alt="Guardians title screen"> | <img src="https://github.com/Gm0rk/Arcade-Atari-G42_MiSTer/blob/main/images/Guardians2.png" width="300" alt="Guardians gameplay"> | 
-| Road Riot 4WD | roadriot (04 Dec 1991, conversion kit); roadriota, roadriotb | <img src="https://github.com/Gm0rk/Arcade-Atari-G42_MiSTer/blob/main/images/RoadRiot4wd.png" width="300" alt="Road Riot 4WD title screen"> | <img src="https://github.com/Gm0rk/Arcade-Atari-G42_MiSTer/blob/main/images/RoadRiot4wd2.png" width="300" alt="oad Riot 4WD gameplay"> |
+| [Danger Express (prototype)](docs/DangerExpress.md) | dangerex (prototype) | <img src="https://github.com/Gm0rk/Arcade-Atari-G42_MiSTer/blob/main/images/DangerExpress.png" width="300" alt="Danger Express title screen"> | <img src="https://github.com/Gm0rk/Arcade-Atari-G42_MiSTer/blob/main/images/DangerExpress2.png" width="300" alt="Danger Express gameplay"> |
+| [Guardians of the 'Hood](docs/GuardiansOfTheHood.md) | guardian | <img src="https://github.com/Gm0rk/Arcade-Atari-G42_MiSTer/blob/main/images/Guardians.png" width="300" alt="Guardians title screen"> | <img src="https://github.com/Gm0rk/Arcade-Atari-G42_MiSTer/blob/main/images/Guardians2.png" width="300" alt="Guardians gameplay"> |
+| [Road Riot 4WD](docs/RoadRiot4WD.md) | roadriot (04 Dec 1991, conversion kit); roadriota, roadriotb | <img src="https://github.com/Gm0rk/Arcade-Atari-G42_MiSTer/blob/main/images/RoadRiot4wd.png" width="300" alt="Road Riot 4WD title screen"> | <img src="https://github.com/Gm0rk/Arcade-Atari-G42_MiSTer/blob/main/images/RoadRiot4wd2.png" width="300" alt="Road Riot 4WD gameplay"> |
 
 ## ROMs
 
