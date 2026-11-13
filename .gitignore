@@ -48,7 +48,6 @@ __pycache__/
 # Third-party files the build does not use
 /rtl/t65/T65.qip
 /tools
-/docs
 /sim
 COMMIT.md
 CHANGELOG.md
