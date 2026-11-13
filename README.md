@@ -34,9 +34,6 @@ Board photographs and chip lists: [System 16 — Atari G42 Hardware](https://www
 
 ## Games
 
-Each game has its own page in [`docs`](docs) with its sets, controls and
-game-specific notes.
-
 | Game | Main set | Title Screen | Gameplay |
 |---|---|---|---|
 | Danger Express (prototype) | dangerex (prototype) | <img src="https://github.com/Gm0rk/Arcade-Atari-G42_MiSTer/blob/main/images/DangerExpress.png" width="300" alt="Danger Express title screen"> | <img src="https://github.com/Gm0rk/Arcade-Atari-G42_MiSTer/blob/main/images/DangerExpress2.png" width="300" alt="Danger Express  gameplay"> |
