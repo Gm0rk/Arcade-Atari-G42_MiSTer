@@ -30,8 +30,6 @@ Express. All three games are playable on a DE10-Nano, with sound.
 | Settings | 2 KB EEPROM (2816) behind an unlock; no DIP switches |
 | Road Riot | ADC0809 for the wheel and pedal |
 
-Board photographs and chip lists: [System 16 — Atari G42 Hardware](https://www.system16.com/hardware.php?id=774).
-
 ## Games
 
 | Game | Main set | Title Screen | Gameplay |
