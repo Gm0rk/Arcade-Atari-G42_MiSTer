@@ -1,4 +1,4 @@
-# Atari G42 for [MiSTer](https://github.com/MiSTer-devel/Main_MiSTer/wiki)
+# Atari G42 for MiSTer FPGA
 
 > **AI disclosure:** this core was developed using AI and MAME as a reference.
 > (Claude, by Anthropic - Opus 5.5 & Sonnet 5.5).
